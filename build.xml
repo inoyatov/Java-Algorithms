@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<project default="main" name="Algorithms">
+
+    <property name="message" value="Building the .jar file."/>
+    <property name="src" location="src"/>
+    <property name="bin" location="bin"/>
+    
+    <target name="main" depends="init, compile, compress">
+        <echo>
+            ${message}
+        </echo>
+    </target>
+
+    <target name="init">
+        <input
+            message="Deleting bin directory OK?"
+            validargs="y,n"
+            addproperty="do.delete"
+        />
+        <condition property="do.abort">
+            <equals arg1="n" arg2="${do.delete}"/>
+        </condition>
+        <fail if="do.abort">Build aborted.</fail>
+        <delete dir="${bin}"/>
+        <mkdir dir="${bin}"/>
+    </target>
+
+    <target name="compile">
+        <javac srcdir="${src}" destdir="${bin}"/>
+    </target>
+
+    <target name="compress">
+        <jar
+            destfile="${bin}/${ant.project.name}.jar"
+            basedir="${bin}"
+            includes="**/*.class"
+        >
+            <manifest>
+                <attribute name="Author" value="${user.name}"/>
+                <attribute name="Main-Class" value="software.App"/>
+                <section name="Shared">
+                    <attribute name="Build" value="${build.number}"/>
+                    <attribute name="Date" value="${TODAY}"/>
+                </section>
+            </manifest>
+        </jar>
+        <delete includeEmptyDirs="true">
+            <fileset dir="${bin}">
+                <include name="*/**"/>
+                <exclude name="${ant.project.name}.jar"/>
+            </fileset>
+        </delete>
+    </target>
+
+</project>
