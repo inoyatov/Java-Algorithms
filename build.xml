@@ -1,55 +1,46 @@
-<?xml version="1.0"?>
-<project default="main" name="Algorithms">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="Algorithms" default="development">
+ 
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="bin"/>
+    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="jar.dir" value="${build.dir}/jar"/>
+    <property name="lib.dir" value="lib" />
+    <path id="lib.path.id">
+        <fileset dir="${lib.dir}" />
+    </path>
 
-    <property name="message" value="Building the .jar file."/>
-    <property name="src" location="src"/>
-    <property name="bin" location="bin"/>
-    
-    <target name="main" depends="init, compile, compress">
-        <echo>
-            ${message}
-        </echo>
+    <target name="development" depends="clean,jar,run">
     </target>
-
-    <target name="init">
-        <input
-            message="Deleting bin directory OK?"
-            validargs="y,n"
-            addproperty="do.delete"
-        />
-        <condition property="do.abort">
-            <equals arg1="n" arg2="${do.delete}"/>
-        </condition>
-        <fail if="do.abort">Build aborted.</fail>
-        <delete dir="${bin}"/>
-        <mkdir dir="${bin}"/>
+ 
+    <target name="resolve">
+        <ivy:retrieve />
     </target>
-
-    <target name="compile">
-        <javac srcdir="${src}" destdir="${bin}"/>
+ 
+    <target name="clean">
+        <delete dir="${build.dir}"/>
     </target>
-
-    <target name="compress">
-        <jar
-            destfile="${bin}/${ant.project.name}.jar"
-            basedir="${bin}"
-            includes="**/*.class"
-        >
+ 
+    <target name="compile" depends="resolve">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="lib.path.id"/>
+    </target>
+ 
+    <target name="jar" depends="compile">
+        <mkdir dir="${jar.dir}"/>
+        <jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}">
             <manifest>
                 <attribute name="Author" value="${user.name}"/>
-                <attribute name="Main-Class" value="software.App"/>
+                <attribute name="Main-Class" value="com.inoyatov.automation.Application"/>
                 <section name="Shared">
                     <attribute name="Build" value="${build.number}"/>
                     <attribute name="Date" value="${TODAY}"/>
                 </section>
             </manifest>
         </jar>
-        <delete includeEmptyDirs="true">
-            <fileset dir="${bin}">
-                <include name="*/**"/>
-                <exclude name="${ant.project.name}.jar"/>
-            </fileset>
-        </delete>
     </target>
 
+    <target name="run">
+        <java jar="${jar.dir}/${ant.project.name}.jar" fork="true"/>
+    </target>
+ 
 </project>
